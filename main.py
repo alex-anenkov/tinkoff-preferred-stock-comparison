@@ -24,7 +24,7 @@ figis = {
     'KRSBP': 'BBG000VPC6Y5'
 }
 
-def load_from_server(figis: list, max_tries: int = 10):
+def load_from_server(figis: list, max_tries: int = 10) -> None:
     for i in range(max_tries):
         try:
             with Client(TOKEN) as client:
@@ -33,7 +33,7 @@ def load_from_server(figis: list, max_tries: int = 10):
             time.sleep(1)
             continue
 
-def get_prices(figis: dict[str, str]):
+def get_prices(figis: dict[str, str]) -> dict:
     resp = load_from_server(list(figis.values()))
     prices = dict()
     assert len(figis.keys()) == len(resp.last_prices)
@@ -42,34 +42,39 @@ def get_prices(figis: dict[str, str]):
         prices.update({ticker: float(price_str)})
     return prices
 
-def compare_prices(price0: float, price1: float):
+def compare_prices(price0: float, price1: float) -> bool:
     return price0 <= price1
 
-def print_stocks(ticker0: str, ticker1: str, price0: float, price1: float):
+def print_stocks(ticker0: str, ticker1: str, price0: float, price1: float) -> None:
     diff = abs(price0 - price1) / min(price0, price1) * 100
     if compare_prices(price0, price1):
         print(f"\x1b[6;30;42m{ticker0}={price0} {ticker1}={price1} diff={diff:,.2f}%\x1b[0m")
     else:
         print(f"{ticker0}={price0} {ticker1}={price1} diff={diff:,.2f}%")
 
-def print_prices(prices: dict[str, float], ticker0: str, ticker1: str):
+def print_prices(prices: dict[str, float], ticker0: str, ticker1: str) -> None:
     price0 = prices[ticker0]
     price1 = prices[ticker1]
     print_stocks(ticker0, ticker1, price0, price1)
 
-with open('config.yaml', 'r') as stream:
-    try:
-        config = yaml.safe_load(stream)
-        TOKEN = config['token']
-    except yaml.YAMLError as e:
-        print(e)
+def main():
+    with open('config.yaml', 'r') as stream:
+        try:
+            config = yaml.safe_load(stream)
+            global TOKEN
+            TOKEN = config['token']
+        except yaml.YAMLError as e:
+            print(e)
 
-prices = get_prices(figis)
-print_prices(prices, 'BANE', 'BANEP')
-print_prices(prices, 'TATN', 'TATNP')
-print_prices(prices, 'SBER', 'SBERP')
-print_prices(prices, 'NKNC', 'NKNCP')
-print_prices(prices, 'KAZT', 'KAZTP')
-print_prices(prices, 'PMSB', 'PMSBP')
-print_prices(prices, 'RTKM', 'RTKMP')
-print_prices(prices, 'KRSB', 'KRSBP')
+    prices = get_prices(figis)
+    print_prices(prices, 'BANE', 'BANEP')
+    print_prices(prices, 'TATN', 'TATNP')
+    print_prices(prices, 'SBER', 'SBERP')
+    print_prices(prices, 'NKNC', 'NKNCP')
+    print_prices(prices, 'KAZT', 'KAZTP')
+    print_prices(prices, 'PMSB', 'PMSBP')
+    print_prices(prices, 'RTKM', 'RTKMP')
+    print_prices(prices, 'KRSB', 'KRSBP')
+
+if __name__ == "__main__":
+    main()
